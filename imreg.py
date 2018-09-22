@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from skimage.measure import structural_similarity as ssim
 import cv2
 import random
+import math
 
 def black(image, no_of_points):
 
@@ -60,7 +61,7 @@ def fitness(image, target):
             if(((image[row][col] == 0) and (target[row][col] == 0)) ):
                 score += 2
             
-    return (2**score)**2
+    return (score)
     
 def populationFitness(population, target):
     """
@@ -83,7 +84,7 @@ def populationFitness(population, target):
     score = []
     min_score = 9999999
     for image in population:
-        fitness_score = fitness(image, target)
+        fitness_score = math.exp(fitness(image, target))**2
         score.append(fitness_score)
         if(fitness_score<min_score):
             min_score = (fitness_score)
@@ -126,11 +127,11 @@ def createChild(img1, img2, num_of_points):
     for i in range(row):
         for j in range(col):
             if((img1[i][j] == 0) and (img2[i][j] == 0)):
-                p = 0.9
+                p = 0.95
             elif((img1[i][j] == 0) or (img2[i][j] == 0)):
-                p = 0.3
+                p = 0.4
             else:
-                p = 0.1
+                p = 0.05
             n = random.random()
             if(n<p):
                 G[i][j] = 0
@@ -199,25 +200,29 @@ def mutatePopulation(population, chance_of_mutation,population_points,black_targ
             population[i] = mutateImage(population[i],black,black_target)
     return population
 
+import time
+
+start = time.time()
 
 #img = Image.open('test.png')
 img = cv2.imread('test.png',0)
+
 black_target = []
 for i in range(len(img)):
     for j in range(len(img[0])):
         
         
-        if(img[i][j] == 255):
+        if(img[i][j] >20):
 
             img[i][j] = 1
         else:
-            black_target.append([i,j])
-
+        	img[i][j] = 0
+        	black_target.append([i,j])
 #plt.imshow(newPopulation(3,target)[0], interpolation = "nearest")
 #plt.show()
 target = img
 pop_max = 50
-num_of_points = 12
+num_of_points = 10
 pop = newPopulation(pop_max, target, num_of_points)
 
 count=0
@@ -237,10 +242,11 @@ while(flag==1):
     max = 0
     max_i = pop[0]
     for i in pop:
-#         if(fitness(i, target) > 10000 ):
-#             #flag = 0
-#             print("good:",count)
-            
+        if(fitness(i, target) > 20):
+            flag = 0
+            print(count)
+            end = time.time()
+            print(end-start)
         if(fitness(i, target) > max):
             max = fitness(i, target)
             max_i = i
