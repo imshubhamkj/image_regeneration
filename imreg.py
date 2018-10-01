@@ -5,6 +5,7 @@ from skimage.measure import structural_similarity as ssim
 import cv2
 import random
 import math
+from numba import jit
 
 def black(image, no_of_points):
 
@@ -34,7 +35,7 @@ def createImage(row, col, no_of_points):
     return img
 
 
-def newPopulation(pop_max, target_img, num_of_points):
+def newPopulation(pop_max, target_img, num_of_points, target):
     
     row = len(target)
     col = len(target[0])
@@ -61,7 +62,10 @@ def fitness(image, target):
             if(((image[row][col] == 0) and (target[row][col] == 0)) ):
                 score += 2
             
+
     return (score)
+    # Experimental fitness below
+
     
 def populationFitness(population, target):
     """
@@ -201,58 +205,63 @@ def mutatePopulation(population, chance_of_mutation,population_points,black_targ
     return population
 
 import time
+@jit
+def main():
+	start = time.time()
 
-start = time.time()
+	#img = Image.open('test.png')
+	img = cv2.imread('test.png',0)
 
-#img = Image.open('test.png')
-img = cv2.imread('test.png',0)
+	black_target = []
+	for i in range(len(img)):
+	    for j in range(len(img[0])):
+	        
+	        
+	        if(img[i][j] >20):
 
-black_target = []
-for i in range(len(img)):
-    for j in range(len(img[0])):
-        
-        
-        if(img[i][j] >20):
+	            img[i][j] = 1
+	        else:
+	                img[i][j] = 0
+	                black_target.append([i,j])
+	#plt.imshow(newPopulation(3,target)[0], interpolation = "nearest")
+	#plt.show()
+	target = img
+	pop_max = 50
+	num_of_points = 10
+	pop = newPopulation(pop_max, target, num_of_points,target)
 
-            img[i][j] = 1
-        else:
-        	img[i][j] = 0
-        	black_target.append([i,j])
-#plt.imshow(newPopulation(3,target)[0], interpolation = "nearest")
-#plt.show()
-target = img
-pop_max = 50
-num_of_points = 10
-pop = newPopulation(pop_max, target, num_of_points)
+	count=0
+	flag = 1
+	while(flag==1):
+	    count+=1
+	    
+	    population_fitness = populationFitness(pop, target)
+	    start = time.time()
 
-count=0
-flag = 1
-while(flag==1):
-    count+=1
-    
-    population_fitness = populationFitness(pop, target)
-    
-    pool = matingPool(population_fitness)
+            #img = Image.open('test.png')
+	    pool = matingPool(population_fitness)
 
-    
-    pop,population_points=createChildren(pool, pop_max, num_of_points,population_fitness[0], target)
-    
-    pop=mutatePopulation(pop, 100, population_points,black_target)
-    print("no of generation:",count)
-    max = 0
-    max_i = pop[0]
-    for i in pop:
-        if(fitness(i, target) > 20):
-            flag = 0
-            print(count)
-            end = time.time()
-            print(end-start)
-        if(fitness(i, target) > max):
-            max = fitness(i, target)
-            max_i = i
-    print(fitness(max_i, target))
-    #plt.imshow(max_i, cmap = plt.cm.gray)
-    #plt.axis("off")
-    plt.imshow(max_i,interpolation='nearest')
-    plt.pause(0.00001)        
-plt.show()
+	    
+	    pop,population_points=createChildren(pool, pop_max, num_of_points,population_fitness[0], target)
+	    
+	    pop=mutatePopulation(pop, 100, population_points,black_target)
+	    print("no of generation:",count)
+	    max = 0
+	    max_i = pop[0]
+	    for i in pop:
+	        if(fitness(i, target) > 10):
+	            flag = 0
+	            print(count)
+	            end = time.time()
+	            print(end-start)
+	        if(fitness(i, target) > max):
+	            max = fitness(i, target)
+	            max_i = i
+	    print(fitness(max_i, target))
+	    #plt.imshow(max_i, cmap = plt.cm.gray)
+	    #plt.axis("off")
+	    plt.imshow(max_i,interpolation='nearest')
+	    plt.pause(0.00001)        
+	plt.show()
+
+main()
