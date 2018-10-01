@@ -249,7 +249,7 @@ def main():
 	    max = 0
 	    max_i = pop[0]
 	    for i in pop:
-	        if(fitness(i, target) > 10):
+	        if(fitness(i, target) > 20):
 	            flag = 0
 	            print(count)
 	            end = time.time()
