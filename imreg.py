@@ -1,7 +1,7 @@
 import random,numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
-from skimage.measure import structural_similarity as ssim
+from skimage.measure import compare_ssim as ssim
 import cv2
 import random
 import math
@@ -9,7 +9,19 @@ from numba import jit
 
 def black(image, no_of_points):
 
+	'''
+	Dimensions no_of_points X 2
+
+	'''
     #black = []
+
+    '''
+    rand_rows = random sample n_points from (n_rows) [0,3,4...]
+	rand_cols = random sample n_points from (n_cols)
+	
+	image[rand_rows, rand_cols] = 0
+	return image
+    '''
     for points in range(no_of_points):
         rand_row = random.randint(0,len(image)- 1)
         rand_col = random.randint(0,len(image[0]) - 1)
@@ -23,7 +35,7 @@ def black(image, no_of_points):
 
 def createImage(row, col, no_of_points):
     
-    Z = np.random.random((row,col))
+    # Z = np.random.random((row,col)) # mention the range of values you want to have them in
     img = np.ones((row,col))
     
     #blac = black(img, no_of_points)
@@ -40,6 +52,7 @@ def newPopulation(pop_max, target_img, num_of_points, target):
     row = len(target)
     col = len(target[0])
     population = []
+    # can create individual processes if lags
     for image in range(pop_max):
         im = createImage(row, col, num_of_points)
         population.append(im)
@@ -49,7 +62,7 @@ def newPopulation(pop_max, target_img, num_of_points, target):
 
 def fitness(image, target):
     
-    
+    # we run this on GPU, if need be
     """
     ms = mse(image, target)
     score = 1/(10**(ms))
@@ -86,7 +99,7 @@ def populationFitness(population, target):
     return [population, score]
     """
     score = []
-    min_score = 9999999
+    min_score = 9999999 # np.inf , float('inf')
     for image in population:
         fitness_score = math.exp(fitness(image, target))**2
         score.append(fitness_score)
@@ -122,6 +135,7 @@ def matingPool(population_fitness):
     return pool_norm_score
         
 def createChild(img1, img2, num_of_points):
+	# rewrite this code, please name it as crossover
     row = len(img1)
     col = len(img1[0])
     black = []
@@ -212,6 +226,7 @@ def main():
 	#img = Image.open('test.png')
 	img = cv2.imread('test.png',0)
 
+	########## remove this code ###########
 	black_target = []
 	for i in range(len(img)):
 	    for j in range(len(img[0])):
@@ -223,6 +238,8 @@ def main():
 	        else:
 	                img[i][j] = 0
 	                black_target.append([i,j])
+	#######################################
+
 	#plt.imshow(newPopulation(3,target)[0], interpolation = "nearest")
 	#plt.show()
 	target = img
