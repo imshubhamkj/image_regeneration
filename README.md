@@ -1,3 +1,3 @@
 # image_regeneration
 
-Image Regeneration using Genetic Algorithm.
+A fun project to regenerate an image using Genetic Algorithm.
